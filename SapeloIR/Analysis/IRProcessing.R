@@ -4,7 +4,7 @@ library(jpeg)
 
 
 #====Set up directories to read in photos====
-foldername = "Snails22Oct18" #enter folder where photos are housed. Mine are dates.
+foldername = "26Oct18" #enter folder where photos are housed. Mine are dates.
 basedir = getwd() #set base working directory
 dir = paste0("./Photos/", foldername) 
 files = list.files(dir) #get the name for each file
