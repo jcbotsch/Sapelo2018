@@ -66,8 +66,10 @@ Snail%>%
   theme_bw()
 
 Snailmean%>%
+  filter(!is.na(Location))%>%
   ggplot(aes(x=Location, y=mean.NDVI, col=factor(Site)))+
-  geom_jitter(position=position_jitterdodge(), alpha=0.4, size=3.5)+
+  geom_point(position=position_jitterdodge(), alpha=0.4, size=3.5)+
+  geom_boxplot(position = position_jitterdodge(), alpha=0)+
   theme_bw()
 
 Snail%>%
