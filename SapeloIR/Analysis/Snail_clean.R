@@ -8,10 +8,8 @@
 library(tidyverse) #data prep, plotting, etc.
 library(readxl) #read excel files
 library(car) #Anova function for type 3 anovas.
-library(lme4) #mixed effects models
 library(stringr) #modify strings for data prep
-library(MuMIn) #package allows for r2 from mixed effects models using Nakagawa 2017
-library(lavaan)
+
 
 #====Read in Data====
 PrelimSnails=rbind(read_csv("./Data/NDVi_25Oct18.csv"), #combine all sheets with NDVI values
@@ -217,30 +215,6 @@ qqPlot(Snailmean$mean.NDVI)#looks roughly along the line
 shapiro.test(Snailmean$mean.NDVI) #p=0.3465 cannot reject H0 that data are non-normal.
 
 #====Q1: Analyses: Location====
-#Mixed effects model- is ndvi driven by location, allow slope and intercept to vary by site
-m1=lmer(mean.NDVI~Location+(Location|Site),
-        data=Snailmean,
-        REML = FALSE)
-
-summary(m1) #slope estimate: far--> near sites -0.02430 
-plot(m1) #residulas look fairly good.
-Anova(m1, contrasts=list(topic=contr.sum, sys=contr.sum), type="3") 
-#           Chisq Df Pr(>Chisq)  
-# Location 4.8243  1    0.02806 *
-r.squaredGLMM(m1) #pseudo R2: marginal R2= variance explained by fixed effects= 0.026 Conditional R2= variance explained by model=0.461
-
-m1.red=lmer(mean.NDVI~Location+(1|Site),
-            data=Snailmean,
-            REML = FALSE)
-
-summary(m1.red) #slope estimate is same as before
-Anova(m1.red, type="3") #chisq of location 13.65, p=0.0002198
-
-r.squaredGLMM(m1.red) #same r2m r2c=0.387 slope does explain some of variation, but not crazy amounts.
-
-#AIC to compare the two models. 
-anova(m1, m1.red) #no real difference in AIC. Also tried with REML which is better for comparing random effects. no difference.  
-
 #fixed efffects model- looking for interaction between location and snail
 m1.fix1=lm(mean.NDVI~Location*Site,
            data=Snailmean)
@@ -300,7 +274,7 @@ Anova(m1.fix3, type="3")
 # Avg.Stalks          0.00000   1  0.0001 0.9944
 # Location:Avg.Stalks 0.00097   1  0.1975 0.6571
 
-AIC(m1.fix, m1.fix2, m1.fix3)
+anova(m1.fix, m1.fix2, m1.fix3)
 #models including site  better AIC change=-128
 
 #====Question 2: Does the location of algal biomass differ between the snails found near and far from the creek?==== 
