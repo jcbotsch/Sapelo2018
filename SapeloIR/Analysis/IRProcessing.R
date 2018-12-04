@@ -1,11 +1,10 @@
 #====Load Packages====
-library(jpeg)
+library(jpeg) #read images and extract channel values
 
 
 
 #====Set up directories to read in photos====
-foldername = "26Oct18" #enter folder where photos are housed. Mine are dates.
-basedir = getwd() #set base working directory
+foldername =  #enter folder where photos are housed. Mine are dates.
 dir = paste0("./Photos/", foldername) 
 files = list.files(dir) #get the name for each file
 
@@ -15,7 +14,7 @@ files = list.files(dir) #get the name for each file
 nphotos = length(files)
 
 #create data frame
-x = data.frame(file=rep(NA, nphotos), date=NA, NDVI=NA, NDVI_min=NA, NDVI_max=NA) #didn't include Tony's
+x = data.frame(file=rep(NA, nphotos), date=NA, NDVI=NA, NDVI_min=NA, NDVI_max=NA) 
 
 #create 'counter' for each row
 counter=0
@@ -38,22 +37,12 @@ for(i in 1:nphotos){
 		
 		#calculate NDVI
 		#here we calculate ENDVI which is ((NIR+Green)-2*(blue))/((NIR+Green)+2blue)
-
 		ENDVI = ((d[, , 1] + d[,,2]) - 2*d[,,3])/((d[, , 1] + d[,,2]) + 2*d[,,3])
-    
-		#Tony Versions
-		# NDVI_1 <- (d[,,1] - .5*(d[,,2] + d[,,3]))/(d[,,1] + .5*(d[,,2] + d[,,3]))
-		# x$NDVI_1[counter] <- mean(NDVI_1)
-		# 
-		# NDVI_2 <- (d[,,1] - d[,,3])/(d[,,1] + d[,,3])
-		# x$NDVI_2[counter] <- mean(NDVI_2)
     
 		#fill in the NDVI columns
 		x$NDVI[counter] = mean(ENDVI)
 		x$NDVI_min[counter] = min(ENDVI)
 		x$NDVI_max[counter] = max(ENDVI)
-		# x$NDVI_1[counter] = mean(NDVI_1)
-		# x$NDVI_2[counter] = mean(NDVI_2)
 
 	
 }

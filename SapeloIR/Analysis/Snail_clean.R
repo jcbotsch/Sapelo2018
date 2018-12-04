@@ -188,6 +188,7 @@ saov(SpartinaInfo$Height.Stalk, SpartinaInfo$Location) #F=48.649, p=5.45e-10
 
 #====Question 1: Does algal biomass differ between snails found near the creek and far from the creek?====
 #====Q1: Plots====
+#plot ENDVI and location
 Snailmean%>%
   ggplot(aes(x=Location, y=mean.NDVI, col=factor(Site)))+
   geom_point(position=position_jitterdodge(), alpha=0.4, size=3)+
@@ -199,6 +200,7 @@ Snailmean%>%
   theme_bw()+
   theme(legend.position = "bottom")
 
+#plot ENDVi and average stalks
 Snailmean%>%
   ggplot(aes(x=Avg.Stalks, y=mean.NDVI, col=factor(Site)))+
   geom_point(position=position_jitterdodge(), alpha=0.4, size=3)+
@@ -212,7 +214,7 @@ Snailmean%>%
 #====Q1: Analyses====
 #confirm normality 
 qqPlot(Snailmean$mean.NDVI)#looks roughly along the line
-shapiro.test(Snailmean$mean.NDVI) #p=0.3465 cannot reject H0 that data are non-normal.
+hist(Snailmean$mean.NDVI)
 
 #====Q1: Analyses: Location====
 #fixed efffects model- looking for interaction between location and snail
@@ -228,28 +230,6 @@ Anova(m1.fix1, type="3")
 
 
 #====Q1: Analyses: Number of Stalks====
-m1.stalk=lmer(mean.NDVI~log(Avg.Stalks)+(log(Avg.Stalks)|Site),
-        data=Snailmean,
-        REML = FALSE)
-
-summary(m1.stalk)
-Anova(m1.stalk, type="3")
-#                   Chisq Df Pr(>Chisq)
-# (Intercept)     2.0800  1     0.1492
-# log(Avg.Stalks) 0.1858  1     0.6664
-
-r.squaredGLMM(m1.stalk) #R2m = 0.0005607244  R2c= 0.3574799
-
-
-m1.stalk.red=lmer(mean.NDVI~log(Avg.Stalks)+(1|Site), #drop random slope
-                  data=Snailmean,
-                  REML = FALSE)
-
-summary(m1.stalk.red)
-r.squaredGLMM(m1.stalk.red) #r2c slightly better 0.357889
-
-
-
 #fixed effects:Average stalks
 m1.fix2=lm(mean.NDVI~Site*log(Avg.Stalks),
           data=Snailmean)
@@ -274,7 +254,7 @@ Anova(m1.fix3, type="3")
 # Avg.Stalks          0.00000   1  0.0001 0.9944
 # Location:Avg.Stalks 0.00097   1  0.1975 0.6571
 
-anova(m1.fix, m1.fix2, m1.fix3)
+anova(m1.fix1, m1.fix2, m1.fix3)
 #models including site  better AIC change=-128
 
 #====Question 2: Does the location of algal biomass differ between the snails found near and far from the creek?==== 
@@ -296,6 +276,7 @@ Snail%>%
   theme_bw()+
   theme(legend.position="bottom")
 
+#plot location and differential endvi
 SnailDiff%>%
   ggplot(aes(x=Location, y=NDVI.diff, col=factor(Site)))+
   geom_point(position=position_jitterdodge(), alpha=0.4, size=3)+
@@ -307,6 +288,7 @@ SnailDiff%>%
   theme_bw()+
   theme(legend.position = "bottom")
   
+#plot number of stalks and differential endvi
 SnailDiff%>%
   ggplot(aes(x=Avg.Stalks, y=NDVI.diff, col=factor(Site)))+
   geom_point(position=position_jitterdodge(), alpha=0.4, size=3)+
@@ -323,7 +305,6 @@ SnailDiff%>%
 #confirm normality
 hist(SnailDiff$NDVI.diff) #fairly good. There's a slight skew.
 qqPlot(SnailDiff$NDVI.diff)#looks pretty good.
-shapiro.test(SnailDiff$NDVI.diff) #p<0.05 reject null hypothesis. Data are non-normal
 
 #Log +1 transform and try again.
 hist(log1p(SnailDiff$NDVI.diff)) #looks better.
@@ -350,6 +331,7 @@ Anova(m2.diff2,type = "3")
 
 #====Question 3: Does the algal biomass differ on snails of different sizes?====
 #====Q3:Plot====
+#plot location and area
 Snail%>%
   filter(!is.na(area))%>%
   ggplot(aes(x=Location, y=area, col=factor(Site)))+
@@ -358,6 +340,7 @@ Snail%>%
   scale_color_manual(values = Sitecol)+
   theme_bw()
 
+#plot area and average endvi
 Snailmean%>%
   ggplot(aes(x=area, y=mean.NDVI, col=Location))+
   geom_point(alpha=0.4, size=3.5)+
@@ -366,12 +349,9 @@ Snailmean%>%
   ylab("Average ENDVI")+
   theme_bw()
 
-Snail%>%
+#plot endvi and differential endvi
+SnailDiff%>%
   filter(!is.na(area))%>%
-  select(Snail, Location, Site, position, NDVI, area)%>%
-  mutate(Site=as.factor(Site))%>%
-  spread(key = position, value = NDVI)%>% #convert to wide format
-  mutate(NDVI.diff=bottom-top)%>%
   ggplot(aes(x=area, y=NDVI.diff, col=Location))+
   geom_point(alpha=0.4, size=3.5)+
   geom_smooth(method="lm", se=FALSE)+
@@ -392,26 +372,27 @@ Anova(size)
 # Site            5917   1  1.1294   0.28940    
 # Location:Site  88095   1 16.8141 6.348e-05 ***
 
-m31= lmer(log1p(mean.NDVI)~Location*area +(1|Site),
-         data=Snailmean)
 
 m31= lm(log1p(mean.NDVI)~Location*area +Site,
           data=Snailmean)
 
 Anova(m31, type="3")
-#                 Chisq Df Pr(>Chisq)    
-#   Location       6.3761  1  0.0115670 *  
-#   area           0.7584  1  0.3838333    
-# Location:area  2.6987  1  0.1004299  
+#                   Sum Sq Df F value   Pr(>F)    
+#   Location      0.010575  1  5.9289 0.017038 *  
+#   area          0.001534  1  0.8601 0.356403    
+#   Site          0.019395  1 10.8739 0.001437 ** 
+#   Location:area 0.004271  1  2.3948 0.125544     
 
-m32= lmer(log1p(NDVI.diff)~Location*area +(1|Site),
+m32= lm(log1p(NDVI.diff)~Location*area+Site,
    data=SnailDiff)
 
 Anova(m32, type="3")
-#                 Chisq Df Pr(>Chisq)    
-#   Location       4.1112  1  0.0426009 *  
-#   area          13.0386  1  0.0003051 ***
-#   Location:area  9.7209  1  0.0018218 ** 
+#                 Sum Sq Df F value    Pr(>F)    
+#   Location      0.008615  1  3.3081 0.0725465 .  
+#   area          0.030801  1 11.8272 0.0009154 ***
+#   Site          0.000557  1  0.2139 0.6449228    
+#   Location:area 0.020885  1  8.0195 0.0058054 ** 
 
-r.squaredGLMM(m31) #site substantial variation. 
-r.squaredGLMM(m32) #site explains no variation. 
+
+
+
