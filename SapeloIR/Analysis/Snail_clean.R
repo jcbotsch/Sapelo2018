@@ -334,7 +334,8 @@ Anova(m2.diff2,type = "3")
 #plot location and area
 Snail%>%
   filter(!is.na(area))%>%
-  ggplot(aes(x=Location, y=area, col=factor(Site)))+
+  mutate(Site=factor(Site))%>%
+  ggplot(aes(x=Location, y=area, col=Site))+
   geom_point(alpha=0.4, position = position_jitterdodge(), size=3)+
   geom_boxplot(alpha=0)+
   scale_color_manual(values = Sitecol)+
@@ -342,6 +343,7 @@ Snail%>%
 
 #plot area and average endvi
 Snailmean%>%
+  filter(!is.na(area))%>%
   ggplot(aes(x=area, y=mean.NDVI, col=Location))+
   geom_point(alpha=0.4, size=3.5)+
   geom_smooth(method="lm", se = FALSE)+
@@ -357,6 +359,19 @@ SnailDiff%>%
   geom_smooth(method="lm", se=FALSE)+
   xlab(bquote('Shell Area (' ~mm^2*')'))+
   ylab("Difference in ENDVI (bottom-top)")+
+  theme_bw()+
+  theme(legend.position="bottom")
+
+#plot
+Snail%>%
+  filter(!is.na(area))%>%
+  ggplot(aes(x=area, y=NDVI, col=position))+
+  facet_grid(~Location)+
+  geom_point(alpha=0.4, size=3.5)+
+  geom_smooth(method="lm", se=FALSE)+
+  geom_line(aes(group=Snail), alpha=0.3, col="black", lty=2)+
+  xlab(bquote('Shell Area (' ~mm^2*')'))+
+  ylab("ENDVI")+
   theme_bw()+
   theme(legend.position="bottom")
 
